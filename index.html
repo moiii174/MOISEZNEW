@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAES CAPS</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #ffffff, #f2f2f2); color:#333; }
+
+    /* ====== INTRO CON LOGO 3D ====== */
+    .intro {
+      position: fixed; width: 100%; height: 100vh; background: #000;
+      display: flex; align-items:center; justify-content:center;
+      animation: fadeOut 3s forwards; animation-delay: 3s; z-index: 9999;
+    }
+    .intro img {
+      width: 250px;
+      transform: rotateY(0deg) rotateX(0deg);
+      animation: float3D 2s forwards, shadowPulse 2s infinite alternate;
+    }
+    @keyframes float3D {
+      0% { transform: rotateY(-30deg) rotateX(-10deg) translateY(100px); opacity:0; }
+      50% { transform: rotateY(20deg) rotateX(10deg) translateY(50px); opacity:1; }
+      100% { transform: rotateY(0deg) rotateX(0deg) translateY(0); opacity:1; }
+    }
+    @keyframes shadowPulse {
+      0% { filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.5)); }
+      100% { filter: drop-shadow(10px 10px 10px rgba(0,0,0,0.7)); }
+    }
+    @keyframes fadeOut { to { opacity:0; visibility:hidden; } }
+
+    /* ====== HEADER ====== */
+    header {
+      position: fixed; top:0; left:0; width:100%;
+      background:#111; color:#fff;
+      display:flex; justify-content: space-between; align-items:center;
+      padding:10px 20px; z-index:1000;
+    }
+    header .logo img {
+      width:150px; transform: rotateY(0deg) rotateX(0deg);
+      animation: shadowPulse 2s infinite alternate;
+    }
+    header .cart { cursor:pointer; font-size:1.5rem; }
+    header .menu-toggle {
+      display:flex; flex-direction:column; justify-content:space-between;
+      width:25px; height:20px; cursor:pointer; margin-right:15px;
+    }
+    header .menu-toggle span {
+      display:block; height:3px; background:#fff; border-radius:2px;
+    }
+    nav { position: absolute; top:60px; left:0; width:200px; background:#222; display:none; flex-direction:column; }
+    nav.active { display:flex; }
+    nav a { color:#fff; padding:10px 15px; text-decoration:none; border-bottom:1px solid #333; }
+    nav .submenu { display:flex; flex-direction:column; }
+    nav .submenu a { padding-left:25px; }
+
+    /* ====== BUSCADOR ====== */
+    .search-box { margin-top:100px; text-align:center; }
+    .search-box input {
+      width:80%; max-width:500px; padding:12px; font-size:1rem; border-radius:25px; border:1px solid #ccc; outline:none;
+    }
+
+    /* ====== CATÁLOGO CON EFECTO FLOTANTE ====== */
+    .catalogo {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap:20px; padding:20px;
+    }
+    .producto {
+      background:#fff; padding:10px; text-align:center; border-radius:10px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .producto img {
+      max-width:100%; border-radius:8px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .producto:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .producto:hover img {
+      transform: scale(1.05);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    .producto button {
+      margin-top:5px; padding:5px 10px; border:none; background:#111; color:#fff; border-radius:5px; cursor:pointer;
+    }
+
+    /* ====== CARRITO ====== */
+    .cart-menu {
+      position:fixed; right:-100%; top:0; width:300px; height:100vh;
+      background:#fff; box-shadow:-2px 0 8px rgba(0,0,0,0.3); padding:20px; transition:0.3s; z-index:1001;
+    }
+    .cart-menu.active { right:0; }
+    .cart-menu h3 { margin-bottom:15px; display:flex; justify-content:space-between; align-items:center; }
+    .cart-menu h3 span { cursor:pointer; font-size:1.2rem; }
+    .cart-items { max-height:60vh; overflow-y:auto; }
+    .cart-total { margin:15px 0; font-weight:bold; }
+    .checkout { padding:10px; width:100%; background:#111; color:#fff; border:none; cursor:pointer; }
+
+    /* ====== FOOTER ====== */
+    footer { background:#111; color:#fff; text-align:center; padding:20px; margin-top:50px; }
+    footer a { color:#fff; margin:0 5px; text-decoration:none; }
+
+    @media (max-width:600px){
+      .catalogo { grid-template-columns: repeat(2,1fr); }
+    }
+
+    /* ==== LOGO 3D (intro) ==== */
+    /* añadimos perspectiva al contenedor de la intro */
+    .intro { perspective: 1000px; }
+    /* desactivamos la animación previa del <img> de la intro para no chocar con el 3D */
+    .intro .logo-3d img { animation: none !important; transform: translateZ(var(--depth, 0px)); }
+
+    .logo-3d {
+      position: relative;
+      width: 250px;
+      transform-style: preserve-3d;
+      transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+      transition: transform 0.2s ease-out, filter 0.2s ease-out;
+      animation: logoFloat 5s ease-in-out infinite alternate;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,.35));
+    }
+    .logo-3d img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 12px; /* opcional */
+    }
+    .logo-3d .shine {
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(120% 120% at var(--sx, 30%) var(--sy, 30%), rgba(255,255,255,.35), transparent 60%);
+      mix-blend-mode: screen; opacity: .5; transition: opacity .2s ease;
+      border-radius: 12px; /* opcional */
+    }
+    .logo-3d:hover { filter: drop-shadow(0 16px 24px rgba(0,0,0,.45)); }
+    .logo-3d::after {
+      content: ""; position: absolute; left: 50%; top: 100%;
+      width: 60%; height: 14px; transform: translateX(-50%); filter: blur(6px);
+      background: radial-gradient(ellipse at center, rgba(0,0,0,.35), transparent 70%);
+      opacity: .7;
+    }
+    @keyframes logoFloat {
+      0%   { transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(6px); }
+      100% { transform: rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-6px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .logo-3d { animation: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- INTRO -->
+  <div class="intro">
+    <!-- LOGO 3D -->
+    <div class="logo-3d" id="logo3D" aria-label="Logo Was Caps 3D">
+      <img src="logo.png" alt="Logo Was Caps">
+      <span class="shine" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="menu-toggle" id="menuToggle">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="logo">
+      <img src="logo.png" alt="Logo Was Caps">
+    </div>
+    <div class="cart" id="cartBtn">🛒</div>
+    <nav id="mainNav">
+      <a href="#">Catálogo</a>
+      <a href="#">Promociones</a>
+      <a href="#">Contacto</a>
+      <div class="submenu">
+        <a href="#">Nike</a>
+        <a href="#">Adidas</a>
+        <a href="#">Jordan</a>
+        <a href="#">New Era</a>
+        <a href="#">Puma</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- BUSCADOR -->
+  <div class="search-box">
+    <input type="text" id="search" placeholder="Busca tu gorra... (Nike, roja, negra)">
+  </div>
+
+  <!-- CATÁLOGO -->
+  <div class="catalogo" id="catalogo">
+    <div class="producto nike">
+      <img src="https://via.placeholder.com/200x150" alt="Gorra Nike">
+      <h4>Nike Classic</h4>
+      <p>Negra con logo blanco</p>
+      <button onclick="addToCart('Nike Classic',25)">Agregar al carrito</button>
+    </div>
+    <div class="producto adidas">
+      <img src="https://via.placeholder.com/200x150" alt="Gorra Adidas">
+      <h4>Adidas Sport</h4>
+      <p>Azul moderna</p>
+      <button onclick="addToCart('Adidas Sport',30)">Agregar al carrito</button>
+    </div>
+    <div class="producto jordan">
+      <img src="https://via.placeholder.com/200x150" alt="Gorra Jordan">
+      <h4>Jordan Jump</h4>
+      <p>Roja edición limitada</p>
+      <button onclick="addToCart('Jordan Jump',35)">Agregar al carrito</button>
+    </div>
+    <div class="producto newera">
+      <img src="https://via.placeholder.com/200x150" alt="Gorra New Era">
+      <h4>New Era Street</h4>
+      <p>Estilo urbano</p>
+      <button onclick="addToCart('New Era Street',28)">Agregar al carrito</button>
+    </div>
+    <div class="producto puma">
+      <img src="https://via.placeholder.com/200x150" alt="Gorra Puma">
+      <h4>Puma Urban</h4>
+      <p>Moderna y cómoda</p>
+      <button onclick="addToCart('Puma Urban',32)">Agregar al carrito</button>
+    </div>
+  </div>
+
+  <!-- CARRITO -->
+  <div class="cart-menu" id="cartMenu">
+    <h3>🛒 Tu Carrito <span id="closeCart">✖</span></h3>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-total" id="cartTotal">Total: $0</div>
+    <button class="checkout">Finalizar compra</button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>Síguenos: <a href="#">Instagram</a> | <a href="#">Facebook</a> | <a href="#">WhatsApp</a></p>
+    <p>© 2025 Was Caps</p>
+  </footer>
+
+  <!-- JS -->
+  <script>
+    // Carrito abrir/cerrar
+    const cartBtn = document.getElementById("cartBtn");
+    const cartMenu = document.getElementById("cartMenu");
+    const closeCart = document.getElementById("closeCart");
+    cartBtn.addEventListener("click", ()=> cartMenu.classList.toggle("active"));
+    closeCart.addEventListener("click", ()=> cartMenu.classList.remove("active"));
+
+    // Menu hamburguesa
+    const menuToggle = document.getElementById("menuToggle");
+    const mainNav = document.getElementById("mainNav");
+    menuToggle.addEventListener("click", ()=> mainNav.classList.toggle("active"));
+
+    // Carrito items
+    const cartItems = document.getElementById("cartItems");
+    const cartTotal = document.getElementById("cartTotal");
+    let total=0;
+    function addToCart(product,price){
+      const item = document.createElement("p");
+      item.textContent = product + " - $" + price;
+      cartItems.appendChild(item);
+      total+=price;
+      cartTotal.textContent="Total: $"+total;
+    }
+
+    // Filtro búsqueda
+    document.getElementById("search").addEventListener("input", function(){
+      const value=this.value.toLowerCase();
+      const products = document.querySelectorAll(".producto");
+      products.forEach(p=>{
+        const text=p.textContent.toLowerCase();
+        p.style.display=text.includes(value)?"block":"none";
+      });
+    });
+
+    /* === LOGO 3D (intro) === */
+    const logo3D = document.getElementById('logo3D');
+    if (logo3D) {
+      let targetRX = 0, targetRY = 0;
+      let currentRX = 0, currentRY = 0;
+      const maxTiltX = 12; // grados vertical
+      const maxTiltY = 20; // grados horizontal
+
+      const lerp = (a,b,t) => a + (b-a)*t;
+
+      function animate(){
+        currentRX = lerp(currentRX, targetRX, 0.12);
+        currentRY = lerp(currentRY, targetRY, 0.12);
+        logo3D.style.setProperty('--rx', currentRX.toFixed(2)+'deg');
+        logo3D.style.setProperty('--ry', currentRY.toFixed(2)+'deg');
+        requestAnimationFrame(animate);
+      }
+      animate();
+
+      function onPointerMove(e){
+        const rect = logo3D.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;  // 0..1
+        const y = (e.clientY - rect.top) / rect.height;  // 0..1
+        targetRY = (x - 0.5) * (maxTiltY * 2);           // izq - , der +
+        targetRX = (0.5 - y) * (maxTiltX * 2);           // arriba + , abajo -
+        logo3D.style.setProperty('--sx', (x*100).toFixed(1)+'%'); // brillo
+        logo3D.style.setProperty('--sy', (y*100).toFixed(1)+'%');
+      }
+
+      function onLeave(){
+        targetRX = 0; targetRY = 0;
+        logo3D.style.removeProperty('--sx');
+        logo3D.style.removeProperty('--sy');
+      }
+
+      logo3D.addEventListener('pointermove', onPointerMove);
+      logo3D.addEventListener('pointerenter', onPointerMove);
+      logo3D.addEventListener('pointerleave', onLeave);
+
+      // Móvil: inclinación del dispositivo (HTTPS y permiso en iOS)
+      function useOrientation(){
+        window.addEventListener('deviceorientation', (e)=>{
+          if (e.gamma == null || e.beta == null) return;
+          const y = Math.max(-45, Math.min(45, e.gamma));           // -45..45
+          const x = Math.max(-30, Math.min(30, e.beta - 60));       // -30..30 relativo
+          targetRY = (y / 45) * maxTiltY;
+          targetRX = (-x / 30) * maxTiltX;
+          logo3D.style.setProperty('--sx', ((targetRY/maxTiltY*0.5+0.5)*100).toFixed(1)+'%');
+          logo3D.style.setProperty('--sy', ((-targetRX/maxTiltX*0.5+0.5)*100).toFixed(1)+'%');
+        }, { passive:true });
+      }
+      if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        logo3D.addEventListener('click', async ()=>{
+          try { const p = await DeviceOrientationEvent.requestPermission(); if (p === 'granted') useOrientation(); } catch {}
+        });
+      } else if ('DeviceOrientationEvent' in window) {
+        useOrientation();
+      }
+    }
+  </script>
+</body>
+</html>
